@@ -51,8 +51,8 @@ public class Robot extends TimedRobot {
    * The arm is a NEO on Everybud.
    * The intake is a NEO 550 on Everybud.
    */
-  CANSparkMax arm = new CANSparkMax(5, MotorType.kBrushless);
-  CANSparkMax intake = new CANSparkMax(6, MotorType.kBrushless);
+  CANSparkMax arm = new CANSparkMax(6, MotorType.kBrushless);
+  CANSparkMax intake = new CANSparkMax(16, MotorType.kBrushless);
 
   /**
    * The starter code uses the most generic joystick class.
