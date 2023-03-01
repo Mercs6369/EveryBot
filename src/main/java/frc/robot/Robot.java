@@ -10,6 +10,8 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.SparkMaxAbsoluteEncoder.Type;
+import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -39,6 +41,7 @@ public class Robot extends TimedRobot {
   CANSparkMax driveLeft2Spark = new CANSparkMax(5, MotorType.kBrushed);
   CANSparkMax driveRight1Spark = new CANSparkMax(2, MotorType.kBrushed);
   CANSparkMax driveRight2Spark = new CANSparkMax(3, MotorType.kBrushed);
+  
  
 
   /*
@@ -51,8 +54,10 @@ public class Robot extends TimedRobot {
    * The arm is a NEO on Everybud.
    * The intake is a NEO 550 on Everybud.
    */
-  CANSparkMax arm = new CANSparkMax(6, MotorType.kBrushless);
   CANSparkMax intake = new CANSparkMax(16, MotorType.kBrushless);
+  CANSparkMax arm = new CANSparkMax(22, MotorType.kBrushless);
+  SparkMaxPIDController m_Arm_Controller;
+
 
   /**
    * The starter code uses the most generic joystick class.
@@ -64,6 +69,9 @@ public class Robot extends TimedRobot {
    * that you feel is more comfortable.
    */
   Joystick j = new Joystick(0);
+  Joystick p = new Joystick(1);
+
+  
 
   /*
    * Magic numbers. Use these to adjust settings.
@@ -124,6 +132,12 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+    /*
+    driveLeft1Spark.restoreFactoryDefaults();
+    driveLeft2Spark.restoreFactoryDefaults();
+    driveRight1Spark.restoreFactoryDefaults();
+    driveRight2Spark.restoreFactoryDefaults();
+    */
     m_chooser.setDefaultOption("do nothing", kNothingAuto);
     m_chooser.addOption("cone and mobility", kConeAuto);
     m_chooser.addOption("cube and mobility", kCubeAuto);
@@ -141,47 +155,43 @@ public class Robot extends TimedRobot {
     driveRight1Spark.setInverted(false);
     driveRight2Spark.setInverted(false);
 
-    /*
-     * Set the arm and intake to brake mode to help hold position.
-     * If either one is reversed, change that here too. Arm out is defined
-     * as positive, arm in is negative.
-     */
-    arm.setInverted(true);
+    driveLeft2Spark.follow(driveLeft1Spark);
+    driveRight2Spark.follow(driveRight1Spark);
+
+
+
+
+    //arm.setInverted(true);013
     arm.setIdleMode(IdleMode.kBrake);
     arm.setSmartCurrentLimit(ARM_CURRENT_LIMIT_A);
-    intake.setInverted(false);
-    intake.setIdleMode(IdleMode.kBrake);
+    arm.setOpenLoopRampRate(0.5);
+    m_Arm_Controller = arm.getPIDController();
+    m_Arm_Controller.setP(0.15);
+    m_Arm_Controller.setOutputRange(-0.45, 0.45);
+    //intake.setInverted(false);
+    //intake.setIdleMode(IdleMode.kBrake);
+
   }
 
   /**
    * Calculate and set the power to apply to the left and right
    * drive motors.
    * 
-   * @param forward Desired forward speed. Positive is forward.
-   * @param turn    Desired turning speed. Positive is counter clockwise from
+   * @param left_side Desired forward speed. Positive is forward.
+   * @param right_side Desired turning speed. Positive is counter clockwise from
    *                above.
    */
-  public void setDriveMotors(double forward, double turn) {
-    SmartDashboard.putNumber("drive forward power (%)", forward);
-    SmartDashboard.putNumber("drive turn power (%)", turn);
+  public void setDriveMotors(double left_side, double right_side) {
 
-    /*
-     * positive turn = counter clockwise, so the left side goes backwards
-     */
-    double left = forward - turn;
-    double right = forward + turn;
-
-    SmartDashboard.putNumber("drive left power (%)", left);
-    SmartDashboard.putNumber("drive right power (%)", right);
+    SmartDashboard.putNumber("drive left power (%)", left_side);
+    SmartDashboard.putNumber("drive right power (%)", right_side);
 
     // see note above in robotInit about commenting these out one by one to set
     // directions.
-    driveLeft1Spark.set(left);
-    //driveLeft1Spark.set(ControlMode.PercentOutput, left);
-    driveRight1Spark.set(right);
-    //driveRight1Spark.set(ControlMode.PercentOutput, right);
-    driveLeft2Spark.set(left);
-    driveRight2Spark.set(right);
+    driveLeft1Spark.set(left_side);
+    driveRight1Spark.set(right_side);
+    //driveLeft2Spark.set(left_side);
+    //driveRight2Spark.set(right_side);
     
   }
 
@@ -218,6 +228,10 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     SmartDashboard.putNumber("Time (seconds)", Timer.getFPGATimestamp());
+    SmartDashboard.putNumber("Arm getRelativeEncoder", arm.getEncoder().getPosition());
+
+
+
   }
 
   double autonomousStartTime;
@@ -225,6 +239,11 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    driveLeft1Spark.restoreFactoryDefaults();
+    driveLeft2Spark.restoreFactoryDefaults();
+    driveRight1Spark.restoreFactoryDefaults();
+    driveRight2Spark.restoreFactoryDefaults();
+    
     driveLeft1Spark.setIdleMode(IdleMode.kBrake);
     driveRight1Spark.setIdleMode(IdleMode.kBrake);
     driveLeft1Spark.setIdleMode(IdleMode.kBrake);
@@ -253,6 +272,7 @@ public class Robot extends TimedRobot {
 
     double timeElapsed = Timer.getFPGATimestamp() - autonomousStartTime;
 
+    
     if (timeElapsed < ARM_EXTEND_TIME_S) {
       setArmMotor(ARM_OUTPUT_POWER);
       setIntakeMotor(0.0, INTAKE_CURRENT_LIMIT_A);
@@ -296,6 +316,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+    /*
     double armPower;
     if (j.getRawButton(7)) {
       // lower the arm
@@ -311,25 +332,28 @@ public class Robot extends TimedRobot {
   
     double intakePower;
     int intakeAmps;
-    if (j.getRawButton(8)) {
+    
+    if (j.getRawButton(1)) {
       // cube in or cone out
       intakePower = INTAKE_OUTPUT_POWER;
       intakeAmps = INTAKE_CURRENT_LIMIT_A;
       lastGamePiece = CUBE;
-    } else if (j.getRawButton(6)) {
+    } else if (j.getRawButton(2)) {
       // cone in or cube out
       intakePower = -INTAKE_OUTPUT_POWER;
       intakeAmps = INTAKE_CURRENT_LIMIT_A;
       lastGamePiece = CONE;
-    } else if (lastGamePiece == CUBE) {
-      intakePower = INTAKE_HOLD_POWER;
-      intakeAmps = INTAKE_HOLD_CURRENT_LIMIT_A;
-    } else if (lastGamePiece == CONE) {
-      intakePower = -INTAKE_HOLD_POWER;
-      intakeAmps = INTAKE_HOLD_CURRENT_LIMIT_A;
     } else {
       intakePower = 0.0;
       intakeAmps = 0;
+    }
+
+    if (j.getRawButton(1) == true){
+      intake.set(1);
+      intake.se
+    }
+    else {
+      setIntakeMotor(0, 0);
     }
     setIntakeMotor(intakePower, intakeAmps);
 
@@ -337,6 +361,37 @@ public class Robot extends TimedRobot {
      * Negative signs here because the values from the analog sticks are backwards
      * from what we want. Forward returns a negative when we want it positive.
      */
-    setDriveMotors(j.getRawAxis(1), -j.getRawAxis(2));
-  }
-}
+
+     if (p.getRawButton(1)){
+      setIntakeMotor(1, 25);
+     }
+     else if (p.getRawButton(2)){
+      setIntakeMotor(-1, 25);
+     }
+     else {
+      setIntakeMotor(0, 0);
+     }
+    //setIntakeMotor(intakePower, intakeAmps); d
+    setDriveMotors(j.getRawAxis(1), -j.getRawAxis(5));
+
+    
+    if (p.getRawButton(3)){
+      //setArmMotor(0.45);
+      m_Arm_Controller.setReference(1, CANSparkMax.ControlType.kPosition);
+    }
+    else if (p.getRawButton(4)){
+      //setArmMotor(-0.45);
+      m_Arm_Controller.setReference(15, CANSparkMax.ControlType.kPosition);
+    }
+    else if (p.getRawButton(5)){
+      //setArmMotor(-0.45);
+      m_Arm_Controller.setReference(16, CANSparkMax.ControlType.kPosition);}
+      
+    else if (p.getRawButton(6)){
+        //setArmMotor(-0.45);
+        m_Arm_Controller.setReference(29, CANSparkMax.ControlType.kPosition);}
+    else {
+      //setArmMotor(0.0);
+    }
+  
+  }}
