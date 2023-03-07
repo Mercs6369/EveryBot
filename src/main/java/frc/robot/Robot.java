@@ -7,6 +7,7 @@ package frc.robot;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.fasterxml.jackson.annotation.JacksonInject.Value;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -381,7 +382,7 @@ public class Robot extends TimedRobot {
     }
     else if (p.getRawButton(4)){
       //setArmMotor(-0.45);
-      m_Arm_Controller.setReference(15, CANSparkMax.ControlType.kPosition);
+      m_Arm_Controller.setReference(33.5, CANSparkMax.ControlType.kPosition);
     }
     else if (p.getRawButton(5)){
       //setArmMotor(-0.45);
@@ -392,6 +393,7 @@ public class Robot extends TimedRobot {
         m_Arm_Controller.setReference(29, CANSparkMax.ControlType.kPosition);}
     else {
       //setArmMotor(0.0);
+      m_Arm_Controller.setReference(arm.getEncoder().getPosition(), CANSparkMax.ControlType.kPosition);}
     }
   
-  }}
+  }
