@@ -376,11 +376,12 @@ public class Robot extends TimedRobot {
     setDriveMotors(j.getRawAxis(1), -j.getRawAxis(5));
 
     
-    if (p.getRawButton(3)){
+    if (p.getRawButton(9)){
       //setArmMotor(0.45);
-      m_Arm_Controller.setReference(1, CANSparkMax.ControlType.kPosition);
+      m_Arm_Controller.setReference(2, CANSparkMax.ControlType.kPosition);
+      
     }
-    else if (p.getRawButton(4)){
+    else if (p.getRawButton(11)){
       //setArmMotor(-0.45);
       m_Arm_Controller.setReference(33.5, CANSparkMax.ControlType.kPosition);
     }
