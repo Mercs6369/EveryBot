@@ -17,8 +17,12 @@ import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj.XboxController;
+
 
 public class Robot extends TimedRobot {
   /*
@@ -71,6 +75,8 @@ public class Robot extends TimedRobot {
    */
   Joystick j = new Joystick(0);
   Joystick p = new Joystick(1);
+
+  
 
   
 
@@ -261,8 +267,18 @@ public class Robot extends TimedRobot {
 
     autonomousStartTime = Timer.getFPGATimestamp();
   }
+  
+  @Override
+  public void disabledInit(){
+
+  }
 
   @Override
+  public void disabledPeriodic(){
+    setDriveMotors(0, 0);
+  }
+
+  @Override                                                                                                                                                 
   public void autonomousPeriodic() {
     if (m_autoSelected == kNothingAuto) {
       setArmMotor(0.0);
@@ -363,16 +379,10 @@ public class Robot extends TimedRobot {
      * from what we want. Forward returns a negative when we want it positive.
      */
 
-     if (p.getRawButton(1)){
-      setIntakeMotor(1, 25);
-     }
-     else if (p.getRawButton(2)){
-      setIntakeMotor(-1, 25);
-     }
-     else {
-      setIntakeMotor(0, 0);
-     }
-    //setIntakeMotor(intakePower, intakeAmps); d
+    setIntakeMotor((p.getRawAxis(3)-p.getRawAxis(2)), 25);
+    SmartDashboard.putNumber("controller output", p.getRawAxis(2));
+
+     
     setDriveMotors(j.getRawAxis(1), -j.getRawAxis(5));
 
     
@@ -396,5 +406,6 @@ public class Robot extends TimedRobot {
       //setArmMotor(0.0);
       m_Arm_Controller.setReference(arm.getEncoder().getPosition(), CANSparkMax.ControlType.kPosition);}
     }
+
   
   }
