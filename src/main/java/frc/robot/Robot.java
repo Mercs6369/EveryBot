@@ -276,6 +276,8 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledPeriodic(){
     setDriveMotors(0, 0);
+    setIntakeMotor(0.0,0);
+    setArmMotor(0.0);
   }
 
   @Override                                                                                                                                                 
@@ -380,7 +382,6 @@ public class Robot extends TimedRobot {
      */
 
     setIntakeMotor((p.getRawAxis(3)-p.getRawAxis(2)), 25);
-    SmartDashboard.putNumber("controller output", p.getRawAxis(2));
 
      
     setDriveMotors(j.getRawAxis(1), -j.getRawAxis(5));
